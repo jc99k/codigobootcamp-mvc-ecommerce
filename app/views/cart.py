@@ -25,3 +25,19 @@ def add_to_cart(product_id):
         flash(message, 'error')
 
     return redirect(request.referrer or url_for('product.index'))
+
+
+@cart_bp.route('/cart/items/<int:item_id>', methods=['PUT'])
+@login_required
+def update_cart_item(item_id):
+    """
+    Actualiza la cantidad de un item en el carrito
+    """
+    new_quantity = request.json.get('quantity', 1)
+    
+    success, message = CartController.update_cart_item_quantity(item_id, new_quantity)
+    
+    if success:
+        return {'success': True, 'message': message}, 200
+    else:
+        return {'success': False, 'message': message}, 400
