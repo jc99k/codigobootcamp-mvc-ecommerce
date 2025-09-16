@@ -51,4 +51,4 @@ if __name__ == '__main__':
     else:
         print("🚀 Starting Flask E-commerce Application...")
         print("📱 Open your browser to: http://localhost:5000")
-        app.run(debug=True)
+        app.run(host="0.0.0.0", port=5000, debug=True)
