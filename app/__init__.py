@@ -20,14 +20,14 @@ def create_app():
     login_manager.login_view = 'auth.login'
 
     # Register blueprints
-    from app.views.auth import auth_bp
+    # from app.views.auth import auth_bp
     from app.views.product import product_bp
     from app.views.cart import cart_bp
-    from app.views.order import order_bp
+    # from app.views.order import order_bp
 
-    app.register_blueprint(auth_bp)
+    # app.register_blueprint(auth_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(cart_bp)
-    app.register_blueprint(order_bp)
+    # app.register_blueprint(order_bp)
 
     return app

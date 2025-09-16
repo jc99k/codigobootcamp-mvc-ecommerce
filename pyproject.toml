@@ -4,4 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+    "flask-login==0.6.2",
+    "flask-migrate==4.0.4",
+    "flask-sqlalchemy==3.0.5",
+    "flask==2.3.3",
+    "python-dotenv==1.0.0",
+    "werkzeug==2.3.7",
+]

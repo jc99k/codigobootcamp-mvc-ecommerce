@@ -1,0 +1,335 @@
+<!-- File: app/templates/products/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Products - ToyStore{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar with Categories and Filters -->
+    <div class="col-lg-3 col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🏷️ Categories</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{{ url_for('product.index') }}"
+                           class="text-decoration-none d-flex align-items-center
+                           {% if not current_category %}text-primary fw-bold{% else %}text-dark{% endif %}">
+                            <i class="me-2">🛍️</i> All Products
+                            <span class="badge bg-light text-dark ms-auto">{{ total_products or '' }}</span>
+                        </a>
+                    </li>
+                    <hr>
+                    {% for category in categories %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('product.index', category=category.id) }}"
+                               class="text-decoration-none d-flex align-items-center
+                               {% if current_category == category.id %}text-primary fw-bold{% else %}text-dark{% endif %}">
+                                <i class="me-2">
+                                    {% if category.name == 'Electronics' %}📱
+                                    {% elif category.name == 'Toys' %}🧸
+                                    {% elif category.name == 'Books' %}📚
+                                    {% elif category.name == 'Clothing' %}👕
+                                    {% else %}📦{% endif %}
+                                </i>
+                                {{ category.name }}
+                                <span class="badge bg-light text-dark ms-auto">{{ category.products|length }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Product Content -->
+    <div class="col-lg-9 col-md-8">
+        <!-- Search and Filter Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                {% if search_query %}
+                    <h2>🔍 Search Results for "{{ search_query }}"</h2>
+                    <p class="text-muted">Found {{ products.items|length }} product(s)</p>
+                {% elif current_category %}
+                    {% for category in categories %}
+                        {% if category.id == current_category %}
+                            <h2>{{ category.name }}</h2>
+                            <p class="text-muted">{{ category.products|length }} product(s) in this category</p>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h2>🛍️ All Products</h2>
+                    <p class="text-muted">Discover our amazing collection</p>
+                {% endif %}
+            </div>
+
+            <!-- Sort Options -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Sort By
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ request.url }}">Default</a></li>
+                    <li><a class="dropdown-item" href="#">Price: Low to High</a></li>
+                    <li><a class="dropdown-item" href="#">Price: High to Low</a></li>
+                    <li><a class="dropdown-item" href="#">Newest First</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- No Results Message -->
+        {% if not products.items %}
+            <div class="text-center py-5">
+                <div class="mb-4" style="font-size: 4rem;">😔</div>
+                {% if search_query %}
+                    <h4>No products found for "{{ search_query }}"</h4>
+                    <p class="text-muted">Try searching with different keywords or browse our categories.</p>
+                    <a href="{{ url_for('product.index') }}" class="btn btn-primary">View All Products</a>
+                {% else %}
+                    <h4>No products available</h4>
+                    <p class="text-muted">Check back later for new products.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Products Grid -->
+        <div class="row">
+            {% for product in products.items %}
+                <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+                    <div class="card product-card h-100 shadow-sm">
+                        <!-- Product Image -->
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center position-relative"
+                             style="height: 220px; overflow: hidden;">
+                            {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                                     class="img-fluid" style="max-height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="text-muted d-flex flex-column align-items-center">
+                                    <div style="font-size: 3rem;">📦</div>
+                                    <small>No Image</small>
+                                </div>
+                            {% endif %}
+
+                            <!-- Stock Status Badge -->
+                            {% if product.stock <= 0 %}
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">Out of Stock</span>
+                            {% elif product.stock <= 5 %}
+                                <span class="badge bg-warning position-absolute top-0 end-0 m-2">Low Stock</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">
+                                <a href="{{ url_for('product.detail', product_id=product.id) }}"
+                                   class="text-decoration-none text-dark">
+                                    {{ product.name }}
+                                </a>
+                            </h5>
+
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ product.description[:120] }}
+                                {% if product.description|length > 120 %}...{% endif %}
+                            </p>
+
+                            <!-- Price and Stock Info -->
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <span class="h5 text-primary mb-0">${{ "%.2f"|format(product.price) }}</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted d-block">
+                                            {% if product.stock > 0 %}
+                                                Stock: {{ product.stock }}
+                                            {% else %}
+                                                <span class="text-danger">Out of Stock</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('product.detail', product_id=product.id) }}"
+                                       class="btn btn-outline-primary btn-sm">
+                                        👁️ View Details
+                                    </a>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if products.pages > 1 %}
+            <nav aria-label="Product pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- Previous Page -->
+                    {% if products.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('product.index',
+                                page=products.prev_num,
+                                category=current_category,
+                                search=search_query) }}">
+                                ‹ Previous
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">‹ Previous</span>
+                        </li>
+                    {% endif %}
+
+                    <!-- Page Numbers -->
+                    {% for page_num in products.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != products.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('product.index',
+                                        page=page_num,
+                                        category=current_category,
+                                        search=search_query) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Next Page -->
+                    {% if products.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('product.index',
+                                page=products.next_num,
+                                category=current_category,
+                                search=search_query) }}">
+                                Next ›
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Next ›</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+        <!-- Quick Stats -->
+        {% if products.items %}
+            <div class="bg-light rounded p-3 mt-4">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <strong>{{ products.total }}</strong>
+                        <small class="text-muted d-block">Total Products</small>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>{{ categories|length }}</strong>
+                        <small class="text-muted d-block">Categories</small>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>{{ products.page }}</strong>
+                        <small class="text-muted d-block">Current Page</small>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>{{ products.pages }}</strong>
+                        <small class="text-muted d-block">Total Pages</small>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Custom Styles for Product Cards -->
+<style>
+.product-card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.add-to-cart-form {
+    margin: 0;
+}
+
+.add-to-cart-form button {
+    transition: all 0.2s ease;
+}
+
+.add-to-cart-form button:hover {
+    transform: scale(1.02);
+}
+
+.badge {
+    font-size: 0.7rem;
+}
+
+@media (max-width: 768px) {
+    .col-lg-3 {
+        order: 2;
+        margin-top: 2rem;
+    }
+
+    .col-lg-9 {
+        order: 1;
+    }
+
+    .sticky-top {
+        position: static !important;
+    }
+}
+</style>
+
+<!-- JavaScript for Enhanced UX -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading state to "Add to Cart" buttons
+    const addToCartForms = document.querySelectorAll('.add-to-cart-form');
+
+    addToCartForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+
+            // Add loading state
+            button.innerHTML = '⏳ Adding...';
+            button.disabled = true;
+
+            // Re-enable after a short delay (the form will actually submit)
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+        });
+    });
+
+    // Smooth scroll to top when pagination is clicked
+    const paginationLinks = document.querySelectorAll('.pagination a');
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+});
+</script>
+{% endblock %}
