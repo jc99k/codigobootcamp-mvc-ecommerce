@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user, UserMixin
 from app.extensions import login_manager 
 from app.controllers import auth_controller
+from typing import Optional
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -27,7 +28,7 @@ def _create_user(name: str, email: str, password: str) -> MockUser:
     _next_id += 1
     return u
 
-def _get_by_email(email: str) -> MockUser | None:
+def _get_by_email(email: str) -> Optional[MockUser]:
     return _MOCK_USERS_BY_EMAIL.get(email)
 
 if not _MOCK_USERS_BY_EMAIL:
