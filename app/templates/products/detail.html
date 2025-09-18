@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Detalle producto{% endblock %}
+{% block content %}
+{% if product %}
+  <h1 class="text-3xl font-bold mb-4">{{ product.name }}</h1>
+
+  <p class="text-lg mb-2">
+    <span class="font-semibold">Precio:</span>
+    ${{ "%.2f"|format(product.price) }}
+  </p>
+
+  <p class="mb-4">
+    <span class="font-semibold">Stock:</span>
+    {% if product.stock > 0 %}
+      <span class="text-green-600">Disponible ({{ product.stock }} unidades)</span>
+    {% else %}
+      <span class="text-red-600">Agotado</span>
+    {% endif %}
+  </p>
+
+  {% if product.description %}
+    <p class="text-gray-700 mb-6">{{ product.description }}</p>
+  {% endif %}
+
+  <div class="flex space-x-4">
+    {% if product.stock > 0 %}
+      <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="post">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Añadir al carrito
+        </button>
+      </form>
+    {% else %}
+      <button class="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
+        No disponible
+      </button>
+    {% endif %}
+
+    <a href="{{ url_for('product.index') }}" 
+       class="px-4 py-2 border rounded hover:bg-gray-100">
+      ← Volver
+    </a>
+  </div>
+
+{% else %}
+  <h1 class="text-2xl font-bold mb-4">Producto no encontrado</h1>
+  <a href="{{ url_for('product.index') }}" class="text-blue-600 hover:underline">← Volver</a>
+{% endif %}
+{% endblock %}
