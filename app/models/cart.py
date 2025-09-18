@@ -8,5 +8,4 @@ class CartItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relación con Product
-    product = db.relationship('Product', backref='cart_items')
+    # La relación con Product ya está definida en Product.cart_items con backref='product'
