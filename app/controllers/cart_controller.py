@@ -76,3 +76,31 @@ class CartController:
         db.session.commit()
         
         return True, "Quantity updated successfully"
+
+    @staticmethod
+    def increment_cart_item_quantity(cart_item_id):
+        """
+        Incrementa la cantidad de un item en el carrito en +1
+        """
+        # Validar que el usuario esté logueado
+        if not current_user.is_authenticated:
+            return False, "User must be logged in"
+        
+        # Buscar el item en el carrito
+        cart_item = CartItem.query.get(cart_item_id)
+        if not cart_item:
+            return False, "Cart item not found"
+        
+        # Verificar que el item pertenece al usuario actual
+        if cart_item.user_id != current_user.id:
+            return False, "Unauthorized access"
+        
+        # Verificar stock disponible para incrementar
+        if cart_item.quantity >= cart_item.product.stock:
+            return False, f"Only {cart_item.product.stock} items available"
+        
+        # Incrementar cantidad en 1
+        cart_item.quantity += 1
+        db.session.commit()
+        
+        return True, "Quantity incremented successfully"
