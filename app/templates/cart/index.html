@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Carrito{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">Carrito</h1>
+<h1 class="text-2xl font-bold mb-4">🛒 Carrito de Compras</h1>
 
-{% if items and items|length > 0 %}
+{% if cart_items and cart_items|length > 0 %}
   <div class="overflow-x-auto">
     <table class="w-full text-left border-separate" style="border-spacing: 0 .5rem">
       <thead>
@@ -16,27 +16,36 @@
         </tr>
       </thead>
       <tbody>
-        {% for it in items %}
+        {% for item in cart_items %}
           <tr class="bg-gray-50">
-            <td class="px-3 py-3 font-medium">{{ it.name }}</td>
-            <td class="px-3 py-3">${{ "%.2f"|format(it.price) }}</td>
+            <td class="px-3 py-3 font-medium">{{ item.product.name }}</td>
+            <td class="px-3 py-3">${{ "%.2f"|format(item.product.price) }}</td>
             <td class="px-3 py-3">
-              <form class="flex items-center gap-2" method="post" action="{{ url_for('cart.update_qty', product_id=it.id) }}">
-                <input name="qty" type="number" min="1" max="{{ it.stock }}" value="{{ it.qty }}"
-                       class="w-20 px-2 py-1 border rounded focus:outline-none focus:ring" />
-                <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Actualizar</button>
-              </form>
+              <div class="flex items-center gap-2">
+                <button onclick="updateQuantity({{ item.id }}, {{ item.quantity - 1 }})" 
+                        class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" 
+                        {% if item.quantity <= 1 %}disabled{% endif %}>-</button>
+                
+                <span id="quantity-{{ item.id }}" class="px-3 py-1 border rounded min-w-[3rem] text-center">
+                  {{ item.quantity }}
+                </span>
+                
+                <button onclick="incrementQuantity({{ item.id }})" 
+                        class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        {% if item.quantity >= item.product.stock %}disabled{% endif %}>+</button>
+              </div>
               <div class="text-xs text-gray-500 mt-1">
-                Stock: {{ it.stock }}
+                Stock: {{ item.product.stock }}
               </div>
             </td>
-            <td class="px-3 py-3 font-semibold">
-              ${{ "%.2f"|format(it.price * it.qty) }}
+            <td class="px-3 py-3 font-semibold" id="subtotal-{{ item.id }}">
+              ${{ "%.2f"|format(item.product.price * item.quantity) }}
             </td>
             <td class="px-3 py-3 text-right">
-              <form method="post" action="{{ url_for('cart.remove', product_id=it.id) }}">
-                <button class="px-3 py-1 border rounded hover:bg-gray-100">Quitar</button>
-              </form>
+              <button onclick="removeItem({{ item.id }})" 
+                      class="px-3 py-1 border rounded hover:bg-gray-100 text-red-600">
+                Quitar
+              </button>
             </td>
           </tr>
         {% endfor %}
@@ -46,42 +55,117 @@
 
   <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>
-      <form method="post" action="{{ url_for('cart.clear') }}">
-        <button class="px-4 py-2 border rounded hover:bg-gray-100">Vaciar carrito</button>
-      </form>
+      <button onclick="clearCart()" class="px-4 py-2 border rounded hover:bg-gray-100">
+        🗑️ Vaciar carrito
+      </button>
     </div>
 
     <div class="bg-white rounded shadow p-4">
-      <h2 class="text-lg font-semibold mb-3">Resumen</h2>
-      <div class="flex justify-between text-sm mb-1">
-        <span>Subtotal</span>
-        <span>${{ "%.2f"|format(totals.subtotal) }}</span>
-      </div>
-      <div class="flex justify-between text-sm mb-1">
-        <span>Envío</span>
-        <span>${{ "%.2f"|format(totals.shipping) }}</span>
-      </div>
-      <div class="flex justify-between text-sm mb-3">
-        <span>Impuestos</span>
-        <span>${{ "%.2f"|format(totals.taxes) }}</span>
-      </div>
+      <h2 class="text-lg font-semibold mb-3">💰 Resumen</h2>
       <div class="flex justify-between text-base font-bold">
         <span>Total</span>
-        <span>${{ "%.2f"|format(totals.total) }}</span>
+        <span id="cart-total">${{ "%.2f"|format(total) }}</span>
       </div>
 
-      <form method="post" action="{{ url_for('cart.checkout') }}" class="mt-4">
-        <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-          Ir a pagar
-        </button>
-      </form>
-      <p class="text-xs text-gray-500 mt-2">
-        * Acciones simuladas (mock) — no se persisten cambios.
-      </p>
+      <button onclick="checkout()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mt-4">
+        🛒 Ir a pagar
+      </button>
     </div>
   </div>
 {% else %}
   <p class="text-gray-600">Tu carrito está vacío.</p>
   <a href="{{ url_for('product.index') }}" class="text-blue-600 hover:underline">← Ver productos</a>
 {% endif %}
+
+<script>
+// Función para incrementar cantidad en +1
+async function incrementQuantity(itemId) {
+    try {
+        const response = await fetch(`/cart/items/${itemId}/increment`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Recargar la página para mostrar los cambios
+            location.reload();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar la cantidad');
+    }
+}
+
+// Función para actualizar cantidad (usando el endpoint existente)
+async function updateQuantity(itemId, newQuantity) {
+    if (newQuantity < 1) return;
+    
+    try {
+        const response = await fetch(`/cart/items/${itemId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ quantity: newQuantity })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar la cantidad');
+    }
+}
+
+// Función para eliminar item (placeholder)
+function removeItem(itemId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+        // TODO: Implementar endpoint para eliminar
+        alert('Función de eliminar pendiente de implementar');
+    }
+}
+
+// Función para vaciar carrito
+async function clearCart() {
+    if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+        try {
+            const response = await fetch('/cart/clear', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al vaciar el carrito');
+        }
+    }
+}
+
+// Función para checkout (placeholder)
+function checkout() {
+    alert('Función de checkout pendiente de implementar');
+}
+</script>
+
 {% endblock %}

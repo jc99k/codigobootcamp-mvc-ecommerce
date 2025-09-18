@@ -134,3 +134,24 @@ class CartController:
             debug_info += f"- Item ID: {item.id}, Product ID: {item.product_id}, Quantity: {item.quantity}\n"
         
         return debug_info
+
+    @staticmethod
+    def clear_cart():
+        """
+        Vacía completamente el carrito del usuario actual
+        """
+        if not current_user.is_authenticated:
+            return False, "User must be logged in"
+        
+        # Obtener todos los items del carrito del usuario
+        cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+        
+        if not cart_items:
+            return False, "Cart is already empty"
+        
+        # Eliminar todos los items del carrito
+        for item in cart_items:
+            db.session.delete(item)
+        
+        db.session.commit()
+        return True, f"Cart cleared successfully. Removed {len(cart_items)} items."

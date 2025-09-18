@@ -65,3 +65,17 @@ def debug_cart():
     """
     debug_info = CartController.get_cart_debug_info()
     return f"<pre>{debug_info}</pre>"
+
+
+@cart_bp.route('/cart/clear', methods=['DELETE'])
+@login_required
+def clear_cart():
+    """
+    Vacía completamente el carrito del usuario
+    """
+    success, message = CartController.clear_cart()
+    
+    if success:
+        return {'success': True, 'message': message}, 200
+    else:
+        return {'success': False, 'message': message}, 400
