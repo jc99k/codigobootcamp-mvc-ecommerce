@@ -8,8 +8,14 @@ wheels/
 
 # Virtual environments
 .venv
+<<<<<<< HEAD
 
 # Flask instance folder and local DB/env files
 instance/
 *.db
 *.sqlite3
+=======
+.idea
+instance/
+migrations/
+>>>>>>> main

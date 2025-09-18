@@ -18,6 +18,7 @@
       <tbody>
         {% for item in cart_items %}
           <tr class="bg-gray-50">
+<<<<<<< HEAD
             <td class="px-3 py-3 font-medium">{{ item.product.name }}</td>
             <td class="px-3 py-3">${{ "%.2f"|format(item.product.price) }}</td>
             <td class="px-3 py-3">
@@ -46,6 +47,27 @@
                       class="px-3 py-1 border rounded hover:bg-gray-100 text-red-600">
                 Quitar
               </button>
+=======
+            <td class="px-3 py-3 font-medium">{{ it.product.name }}</td>
+            <td class="px-3 py-3">${{ "%.2f"|format(it.product.price) }}</td>
+            <td class="px-3 py-3">
+              <form class="flex items-center gap-2" method="post" action="{{ url_for('cart.update_cart', product_id=it.product.id) }}">
+                <input name="quantity" type="number" min="1" max="{{ it.product.stock }}" value="{{ it.quantity }}"
+                       class="w-20 px-2 py-1 border rounded focus:outline-none focus:ring" />
+                <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Actualizar</button>
+              </form>
+              <div class="text-xs text-gray-500 mt-1">
+                Stock: {{ it.product.stock }}
+              </div>
+            </td>
+            <td class="px-3 py-3 font-semibold">
+              ${{ "%.2f"|format(it.product.price * it.quantity) }}
+            </td>
+            <td class="px-3 py-3 text-right">
+              <form method="post" action="{{ url_for('cart.remove_from_cart', product_id=it.product.id) }}">
+                <button class="px-3 py-1 border rounded hover:bg-gray-100">Quitar</button>
+              </form>
+>>>>>>> main
             </td>
           </tr>
         {% endfor %}
@@ -55,9 +77,15 @@
 
   <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>
+<<<<<<< HEAD
       <button onclick="clearCart()" class="px-4 py-2 border rounded hover:bg-gray-100">
         🗑️ Vaciar carrito
       </button>
+=======
+      <form method="post" action="{{ url_for('cart.empty_cart') }}">
+        <button class="px-4 py-2 border rounded hover:bg-gray-100">Vaciar carrito</button>
+      </form>
+>>>>>>> main
     </div>
 
     <div class="bg-white rounded shadow p-4">

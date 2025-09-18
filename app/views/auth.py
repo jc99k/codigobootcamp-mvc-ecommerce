@@ -1,10 +1,15 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user, UserMixin
 from app.extensions import login_manager 
+<<<<<<< HEAD
 from app.controllers import auth_controller
+=======
+from app.controllers.auth_controller import UserController
+>>>>>>> main
 from typing import Optional
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
 
 class MockUser(UserMixin):
     def __init__(self, id: int, name: str, email: str, password: str):
@@ -31,8 +36,8 @@ def _create_user(name: str, email: str, password: str) -> MockUser:
 def _get_by_email(email: str) -> Optional[MockUser]:
     return _MOCK_USERS_BY_EMAIL.get(email)
 
-if not _MOCK_USERS_BY_EMAIL:
-    _create_user("Usuario Demo", "demo@demo.com", "demo123")
+# if not _MOCK_USERS_BY_EMAIL:
+#     _create_user("Usuario Demo", "demo@demo.com", "demo123")
 
 @login_manager.user_loader
 def load_user(user_id: str):
@@ -49,7 +54,8 @@ def login_post():
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
 
-    user = _get_by_email(email)
+    # user = _get_by_email(email)
+    user = UserController.get_user_by_email(email)
     if not user or not user.check_password(password):
         flash("Credenciales inválidas", "error")
         return redirect(url_for("auth.login_get"))
@@ -78,13 +84,14 @@ def register_post():
     if password != confirm:
         flash("Las contraseñas no coinciden", "error")
         return redirect(url_for("auth.register_get"))
-    if _get_by_email(email):
+    if UserController.get_user_by_email(email):
         flash("El correo ya está registrado", "error")
         return redirect(url_for("auth.register_get"))
 
-    _create_user(name=name, email=email, password=password)
+    UserController.create_user(username=name, email=email, password=password)
     flash("Cuenta creada. Inicia sesión.", "success")
     return redirect(url_for("auth.login_get"))
+
 
 @auth_bp.post("/logout")
 @login_required
