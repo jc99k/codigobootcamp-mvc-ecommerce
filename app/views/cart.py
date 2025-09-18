@@ -55,3 +55,13 @@ def increment_cart_item(item_id):
         return {'success': True, 'message': message}, 200
     else:
         return {'success': False, 'message': message}, 400
+
+
+@cart_bp.route('/cart/debug')
+@login_required
+def debug_cart():
+    """
+    Endpoint temporal para debuggear el carrito
+    """
+    debug_info = CartController.get_cart_debug_info()
+    return f"<pre>{debug_info}</pre>"

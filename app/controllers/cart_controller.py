@@ -11,26 +11,39 @@ class CartController:
             return False, "Please log in to add items to cart"
 
         product = Product.query.get(product_id)
-        if not product or product.stock < quantity:
-            return False, "Product not available or insufficient stock"
+        if not product:
+            return False, "Product not found"
+        
+        if product.stock < quantity:
+            return False, f"Only {product.stock} items available"
 
+        # Buscar si ya existe un item en el carrito para este producto
         cart_item = CartItem.query.filter_by(
             user_id=current_user.id,
             product_id=product_id
         ).first()
 
         if cart_item:
-            cart_item.quantity += quantity
+            # Si ya existe, verificar que no exceda el stock total
+            new_total_quantity = cart_item.quantity + quantity
+            if new_total_quantity > product.stock:
+                return False, f"Only {product.stock} items available (you already have {cart_item.quantity})"
+            
+            # Actualizar cantidad existente
+            cart_item.quantity = new_total_quantity
+            message = f"Quantity updated to {new_total_quantity}"
         else:
+            # Crear nuevo item en el carrito
             cart_item = CartItem(
                 user_id=current_user.id,
                 product_id=product_id,
                 quantity=quantity
             )
             db.session.add(cart_item)
+            message = "Item added to cart successfully"
 
         db.session.commit()
-        return True, "Item added to cart successfully"
+        return True, message
 
     @staticmethod
     def get_cart_items():
@@ -104,3 +117,20 @@ class CartController:
         db.session.commit()
         
         return True, "Quantity incremented successfully"
+
+    @staticmethod
+    def get_cart_debug_info():
+        """
+        Método para debuggear - muestra información detallada del carrito
+        """
+        if not current_user.is_authenticated:
+            return "User not authenticated"
+        
+        cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+        debug_info = f"User ID: {current_user.id}\n"
+        debug_info += f"Total cart items: {len(cart_items)}\n"
+        
+        for item in cart_items:
+            debug_info += f"- Item ID: {item.id}, Product ID: {item.product_id}, Quantity: {item.quantity}\n"
+        
+        return debug_info
