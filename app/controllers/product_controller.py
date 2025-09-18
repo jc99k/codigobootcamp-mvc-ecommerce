@@ -1,5 +1,4 @@
 from app.models.product import Product
-from app import db
 
 
 class ProductController:
@@ -12,10 +11,6 @@ class ProductController:
     @staticmethod
     def get_product_by_id(product_id):
         return Product.query.get_or_404(product_id)
-
-    # @staticmethod
-    # def get_products_by_category(category_id):
-    #     return Product.query.filter_by(category_id=category_id).all()
 
     @staticmethod
     def search_products(query):
