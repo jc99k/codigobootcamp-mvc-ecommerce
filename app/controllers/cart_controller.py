@@ -10,9 +10,15 @@ class CartController:
         if not current_user.is_authenticated:
             return False, "Please log in to add items to cart"
 
+        # Debug: imprimir información
+        print(f"DEBUG: Adding product_id={product_id}, quantity={quantity}, user_id={current_user.id}")
+
         product = Product.query.get(product_id)
         if not product:
+            print(f"DEBUG: Product with id {product_id} not found")
             return False, "Product not found"
+        
+        print(f"DEBUG: Found product: {product.name} (ID: {product.id})")
         
         if product.stock < quantity:
             return False, f"Only {product.stock} items available"
@@ -31,7 +37,7 @@ class CartController:
             
             # Actualizar cantidad existente
             cart_item.quantity = new_total_quantity
-            message = f"Quantity updated to {new_total_quantity}"
+            message = f"Quantity updated to {new_total_quantity} for {product.name}"
         else:
             # Crear nuevo item en el carrito
             cart_item = CartItem(
@@ -40,7 +46,8 @@ class CartController:
                 quantity=quantity
             )
             db.session.add(cart_item)
-            message = "Item added to cart successfully"
+            message = f"Added {product.name} to cart successfully"
+            print(f"DEBUG: Created new cart item for product {product.name} (ID: {product_id})")
 
         db.session.commit()
         return True, message
@@ -50,7 +57,18 @@ class CartController:
         if not current_user.is_authenticated:
             return []
 
-        return CartItem.query.filter_by(user_id=current_user.id).all()
+        cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+        
+        # Debug: imprimir información de los items del carrito
+        print(f"DEBUG: Found {len(cart_items)} cart items for user {current_user.id}")
+        for item in cart_items:
+            print(f"DEBUG: Cart item - ID: {item.id}, Product ID: {item.product_id}, Quantity: {item.quantity}")
+            if item.product:
+                print(f"DEBUG: Product name: {item.product.name}")
+            else:
+                print(f"DEBUG: Product with ID {item.product_id} not found!")
+        
+        return cart_items
 
     @staticmethod
     def calculate_cart_total():

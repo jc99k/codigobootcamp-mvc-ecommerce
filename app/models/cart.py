@@ -7,3 +7,6 @@ class CartItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relación con Product
+    product = db.relationship('Product', backref='cart_items')
