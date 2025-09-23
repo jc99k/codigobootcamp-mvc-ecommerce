@@ -1,6 +1,7 @@
 # Ejemplo MVC E-Commerce
 
 - Lenguaje: Python 3.9
+- Base de Datos: Postgres 17+
 - Funcionalidades:
   - Users
   - Products
@@ -31,14 +32,48 @@ python -m pip install -U pip
 pip install -r requirements.txt
 ```
 
-4. **Inicializar la base de datos**
+4. **Crear un archivo ".env" en la raíz del proyecto**
+
+Debe tener los siguientes contenidos, reemplazando los valores entre comillas por los valores a utilizar.
+  - **DB_NAME**: Nombre de la Base de Datos (ej: "ecommerce")
+  - **DB_USER**: Usuario de la Base de Datos
+  - **DB_PASS**: Contraseña de la Base de Datos
+  - **DB_HOST**: Hostname o IP de la Base de Datos (ej: "localhost")
+  - **DB_PORT**: Puerto de la Base de Datos (ej: "5432")
+
+Archivo ejemplo:
+```
+DB_NAME="ecommerce"
+DB_USER="my_username"
+DB_PASS="my_password"
+DB_HOST="localhost"
+DB_PORT="5432"
+```
+
+5. **Preparar Base de Datos PostgreSQL**
+
+**IMPORTANTE:** _Utilizar los mismos valores del archivo .env_
+
+- Ingresar a Postgres via `psql`
+
+- Si la Base de Datos no existe:
+```sql
+CREATE DATABASE ecommerce;
+```
+- Finalmente:
+```sql
+CREATE USER my_username WITH PASSWORD 'my_password';
+GRANT ALL PRIVILEGES ON DATABASE ecommerce TO my_username;
+```
+
+6. **Inicializar la base de datos**
 
 ```cmd
 if not exist instance mkdir instance
 python setup_db.py
 ```
 
-5. **Ejecutar la aplicación**
+7. **Ejecutar la aplicación**
 
 ```cmd
 python run.py
